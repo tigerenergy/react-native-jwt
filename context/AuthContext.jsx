@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useReducer, createContext, useEffect } from "react";
 import axios from "axios";
 /**
- * @typedef {{aToken:string,rToken:string,isAuth:boolean,setAuth:React.DispatchWithoutAction}} IAuthContext
+ * @typedef {{user:{},aToken:string,rToken:string,isAuth:boolean,setAuth:React.DispatchWithoutAction}} IAuthContext
  */
 
 /**
@@ -20,6 +20,7 @@ export function AuthProvider({ children }) {
       isAuth: false,
       aToken: "",
       rToken: "",
+      user: {},
     }
   );
   useEffect(() => {
@@ -30,26 +31,58 @@ export function AuthProvider({ children }) {
   }, [state.rToken]);
 
   useEffect(() => {
+    if (!state.aToken) {
+      // si el token esta vacio
+      // no hacemos nada y salimos de esta funcion
+      return;
+    }
     axios.defaults.headers = {
       autenticacion: state.aToken,
     };
     axios
       .get("/auth/me")
       .then(({ data }) => {
+        console.log("get /auth/me");
         if (data.user) {
-          setAuth({ isAuth: true });
+          setAuth({ isAuth: true, user: data.user });
         }
       })
       .catch((error) => {
-        console.warn(error);
+        console.warn("error-get /auth/me", error);
       });
   }, [state.aToken]);
 
   useEffect(() => {
-    AsyncStorage.getItem("rToken").then((rToken) => {
-      console.log("get from async storage:", res);
-      setAuth({ rToken });
-    });
+    // funcion inicial
+    AsyncStorage.getItem("rToken")
+      .then(async (rToken) => {
+        console.log("get from async storage:", rToken);
+        // refresh token
+        const { data } = await axios.get("/auth/refresh", {
+          params: { rToken },
+        });
+        if (data.aToken) {
+          axios.interceptors.response.use(
+            (res) => {
+              return res;
+            },
+            async (error) => {
+              console.log("interceptor error");
+              const { data } = await axios.get("/auth/refresh", {
+                params: { rToken },
+              });
+              if (data.aToken) {
+                console.log("interceptor-Token refrescado");
+                setAuth({ rToken, aToken: data.aToken });
+              }
+            }
+          );
+          setAuth({ rToken, aToken: data.aToken });
+        }
+      })
+      .catch(() => {
+        console.log("no se ha guardado ningun rToken");
+      });
   }, []);
 
   return (
