@@ -1,23 +1,36 @@
-import { FlatList, Text, StyleSheet, View } from "react-native";
+import { Alert, FlatList, Text, StyleSheet, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
 export function Posts() {
+  const [cargando, setCargando] = useState(false);
   const [post, setPost] = useState("");
   const [posts, setPosts] = useState([]);
   useEffect(() => {
     solicitarPosts();
   }, []);
   async function solicitarPosts() {
-    const { data } = await axios.get("/posts");
-    console.log(data);
-    setPosts(data);
+    setCargando(true);
+    try {
+      const { data } = await axios.get("/posts");
+      setPosts(data);
+    } catch (error) {
+      console.log(error);
+    }
+    setCargando(false);
   }
   async function createPost() {
-    const { data } = await axios.post("/posts", { content: post });
-
-    console.log(data);
+    setCargando(true);
+    try {
+      const { data } = await axios.post("/posts", { content: post });
+      console.log(data);
+    } catch (error) {
+      console.log(error);
+    }
+    setPost("");
+    solicitarPosts();
+    setCargando(false);
   }
   return (
     <View style={styles.container}>
@@ -28,8 +41,12 @@ export function Posts() {
         value={post}
         onChangeText={setPost}
       />
-      <Button onPress={createPost}>Crear</Button>
+      <Button loading={cargando} onPress={createPost}>
+        Crear
+      </Button>
       <FlatList
+        refreshing={cargando}
+        onRefresh={solicitarPosts}
         data={posts}
         keyExtractor={(e) => e.id}
         renderItem={({ item }) => <Text>{item.content}</Text>}

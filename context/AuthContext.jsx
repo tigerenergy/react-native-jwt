@@ -1,4 +1,3 @@
-import { useAsyncStorage } from "@react-native-async-storage/async-storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useReducer, createContext, useEffect } from "react";
 import axios from "axios";
@@ -62,6 +61,7 @@ export function AuthProvider({ children }) {
           params: { rToken },
         });
         if (data.aToken) {
+          // refrecsra el token si hay un error minestra el usuario hace una solicitud
           axios.interceptors.response.use(
             (res) => {
               return res;
@@ -74,6 +74,12 @@ export function AuthProvider({ children }) {
               if (data.aToken) {
                 console.log("interceptor-Token refrescado");
                 setAuth({ rToken, aToken: data.aToken });
+                // volver a ntentar ultima request
+                if (error.config) {
+                  console.log("volver a intentar", error.config);
+                  error.config.headers.autenticacion = data.aToken;
+                  axios.request(error.config);
+                }
               }
             }
           );
