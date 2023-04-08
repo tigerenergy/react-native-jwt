@@ -1,4 +1,4 @@
-import { Alert, FlatList, Text, StyleSheet, View } from 'react-native'
+npm i expo-updatesimport { Alert, FlatList, Text, StyleSheet, View } from 'react-native'
 import { Button, TextInput } from 'react-native-paper'
 import { useEffect, useState } from 'react'
 import axios from 'axios'
