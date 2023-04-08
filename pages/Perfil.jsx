@@ -1,25 +1,25 @@
-import { Text, StyleSheet, View } from "react-native";
-import { useContext, useState, useEffect } from "react";
-import { AuthContext } from "../context";
-import { Button } from "react-native-paper";
-import axios from "axios";
+import { Text, StyleSheet, View } from 'react-native'
+import { useContext, useState, useEffect } from 'react'
+import { AuthContext } from '../context'
+import { Button } from 'react-native-paper'
+import axios from 'axios'
 
 export function Perfil() {
-  const { setAuth } = useContext(AuthContext);
-  const [user, setuser] = useState({});
-  useEffect(getuser, []);
+  const { setAuth } = useContext(AuthContext)
+  const [user, setuser] = useState({})
+  useEffect(getuser, [])
   function getuser() {
     axios
-      .get("/auth/me")
+      .get('/auth/me')
       .then(({ data }) => {
-        setuser(data.user);
+        setuser(data.user)
       })
       .catch((error) => {
-        console.log("perfil - error - /auth/me");
-      });
+        console.log('perfil - error - /auth/me')
+      })
   }
   function cerrarSession() {
-    setAuth({ isAuth: false });
+    setAuth({ isAuth: false })
   }
   return (
     <View style={styles.container}>
@@ -27,14 +27,14 @@ export function Perfil() {
       <Button onPress={getuser}>get User</Button>
       <Button onPress={cerrarSession}>Cerrar Session</Button>
     </View>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-});
+})
